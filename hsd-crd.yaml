@@ -1,0 +1,105 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: hotstandbydeployments.apps.paia.tech
+spec:
+  group: apps.paia.tech
+  scope: Namespaced
+  names:
+    kind: HotStandbyDeployment
+    plural: hotstandbydeployments
+    singular: hotstandbydeployment
+    shortNames: [hsd]
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: IdleTarget
+          type: integer
+          jsonPath: .spec.idleTarget
+        - name: Busy
+          type: integer
+          jsonPath: .status.busyCount
+        - name: Total
+          type: integer
+          jsonPath: .status.desiredReplicas
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: ["idleTarget", "podTemplate", "selector"]
+              properties:
+                idleTarget:
+                  type: integer
+                  minimum: 0
+                minReplicas:
+                  type: integer
+                  minimum: 0
+                  default: 0
+                maxReplicas:
+                  type: integer
+                  minimum: 1
+                  default: 1000
+                scaleDownDelaySeconds:
+                  type: integer
+                  minimum: 0
+                  default: 30
+                selector:
+                  type: object
+                  description: 與 Deployment 一樣，用來鎖定子 Pod
+                  properties:
+                    matchLabels:
+                      type: object
+                      additionalProperties:
+                        type: string
+                podTemplate:
+                  type: object
+                  description: 與 Deployment.spec.template 同形
+                  x-kubernetes-preserve-unknown-fields: true
+                busyProbe:
+                  type: object
+                  properties:
+                    mode:
+                      type: string
+                      enum: ["annotation","http"]
+                      default: "annotation"
+                    annotationKey:
+                      type: string
+                      default: "paia.tech/busy"
+                    http:
+                      type: object
+                      properties:
+                        port:
+                          type: integer
+                          default: 8080
+                        path:
+                          type: string
+                          default: /busy
+                        successIsBusy:
+                          type: boolean
+                          default: true
+                        timeoutSeconds:
+                          type: integer
+                          default: 1
+                        periodSeconds:
+                          type: integer
+                          default: 10
+            status:
+              type: object
+              properties:
+                observedGeneration:
+                  type: integer
+                busyCount:
+                  type: integer
+                idleCount:
+                  type: integer
+                desiredReplicas:
+                  type: integer

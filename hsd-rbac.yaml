@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-self-annotator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: patch-own-pod
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get","patch"]
+  resourceNames: ["${POD_NAME}"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-self-annotator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: patch-own-pod
+subjects:
+- kind: ServiceAccount
+  name: pod-self-annotator
