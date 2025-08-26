@@ -224,7 +224,7 @@ status:
 
 ## License
 
-MIT (feel free to adapt to your needs).
+Apache License Version 2.0
 
 ---
 
