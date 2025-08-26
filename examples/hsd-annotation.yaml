@@ -1,0 +1,36 @@
+apiVersion: apps.paia.tech/v1alpha1
+kind: HotStandbyDeployment
+metadata:
+  name: hsd-sample-annotation
+  namespace: default
+spec:
+  idleTarget: 3
+  minReplicas: 0
+  maxReplicas: 50
+  selector:
+    matchLabels:
+      app: hsd-sample
+  busyProbe:
+    mode: annotation
+    annotationKey: paia.tech/busy
+  podTemplate:
+    metadata:
+      labels:
+        app: hsd-sample
+    spec:
+      serviceAccountName: pod-self-annotator
+      containers:
+        - name: app
+          image: ghcr.io/your-org/your-app:latest
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hsd-operator
+  labels:
+    app: hsd-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hsd-operator
+  template:
+    metadata:
+      labels:
+        app: hsd-operator
+    spec:
+      serviceAccountName: hsd-operator
+      containers:
+        - name: operator
+          image: ghcr.io/your-org/hsd-kopf-operator:latest  # ← 改成你的 image
+          imagePullPolicy: IfNotPresent
+          command: ["kopf"]
+          args:
+            - "run"
+            - "--standalone"
+            - "--all-namespaces"
+            - "/app/operate.py"
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
